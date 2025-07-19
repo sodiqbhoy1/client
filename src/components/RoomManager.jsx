@@ -22,8 +22,23 @@ const RoomManager = () => {
 
   const createRoom = async () => {
     if (!roomName.trim()) return;
+    
+    // Convert room name to URL-safe format
+    const urlSafeRoomName = roomName
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/[^a-z0-9-_]/g, '') // Remove special characters except hyphens and underscores
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+    
+    if (!urlSafeRoomName) {
+      alert('Please enter a valid room name');
+      return;
+    }
+    
     try {
-      await axios.post(`${API_URL}/create`, { roomId: roomName });
+      await axios.post(`${API_URL}/create`, { roomId: urlSafeRoomName });
       setRoomName('');
       fetchRooms();
     } catch (err) {
