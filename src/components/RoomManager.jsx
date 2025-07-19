@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_SOCKET_URL;
 
 const RoomManager = () => {
   const [roomName, setRoomName] = useState('');
@@ -51,8 +51,10 @@ const RoomManager = () => {
   };
 
   const joinRoom = (roomId) => {
-    // For the admin, we can bypass the landing page by passing state directly
-    navigate(`/chat/${roomId}`, { state: { name: 'Admin', email: 'admin@chatapp.com' } });
+    // Set admin user info in sessionStorage to bypass landing page
+    const adminUser = { name: 'Admin', email: 'admin@chatapp.com' };
+    sessionStorage.setItem('chatUser', JSON.stringify(adminUser));
+    navigate(`/chat/${roomId}`);
   };
 
   useEffect(() => {
