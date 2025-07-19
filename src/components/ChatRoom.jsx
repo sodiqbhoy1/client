@@ -30,7 +30,7 @@ const ChatRoom = () => {
 
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_SOCKET_URL}/api/rooms/${roomId}/messages`);
+        const res = await axios.get(`${import.meta.env.VITE_SOCKET_URL}/messages/${roomId}`);
         setMessages(res.data);
       } catch (error) {
         console.error("Error fetching messages:", error);
