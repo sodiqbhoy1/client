@@ -9,7 +9,10 @@ const ChatRoom = () => {
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     // This effect handles user session management.
@@ -63,11 +66,104 @@ const ChatRoom = () => {
     const messageData = {
       roomId,
       content: text,
-      sender: user.name, // Assuming the user object has a 'name' property
+      sender: user.name,
+      type: 'text'
     };
 
     socket.emit('send_message', messageData);
     setText('');
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Check file size (limit to 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB');
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const uploadFile = async () => {
+    if (!selectedFile || !user) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('roomId', roomId);
+    formData.append('sender', user.name);
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/api/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const fileMessage = {
+        roomId,
+        content: response.data.filename,
+        sender: user.name,
+        type: selectedFile.type.startsWith('image/') ? 'image' : 'file',
+        originalName: selectedFile.name,
+        fileUrl: response.data.fileUrl
+      };
+
+      socket.emit('send_message', fileMessage);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Failed to upload file. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const renderMessage = (msg) => {
+    if (msg.type === 'image') {
+      return (
+        <div>
+          <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
+          <img 
+            src={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
+            alt={msg.originalName || 'Shared image'} 
+            className="max-w-xs rounded-lg mt-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => window.open(msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`, '_blank')}
+          />
+          <p className="text-xs text-gray-500 mt-1">{msg.originalName}</p>
+        </div>
+      );
+    } else if (msg.type === 'file') {
+      return (
+        <div>
+          <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
+          <div className="bg-gray-50 p-3 rounded mt-2 flex items-center hover:bg-gray-100 transition-colors">
+            <svg className="w-6 h-6 text-gray-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <a 
+              href={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
+              download={msg.originalName}
+              className="text-blue-600 hover:text-blue-800 hover:underline flex-1 truncate"
+            >
+              {msg.originalName || msg.content}
+            </a>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
+          <p className="text-gray-800">{msg.content}</p>
+        </div>
+      );
+    }
   };
 
   // Render a loading state or null while checking for user session
@@ -96,8 +192,7 @@ const ChatRoom = () => {
                     : 'bg-white text-left'
                 }`}
               >
-                <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
-                <p className="text-gray-800">{msg.content}</p>
+                {renderMessage(msg)}
               </div>
             </div>
           ))}
@@ -106,6 +201,41 @@ const ChatRoom = () => {
       </main>
 
       <footer className="bg-white p-4 border-t">
+        {/* File Preview */}
+        {selectedFile && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-6 h-6 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+              <span className="text-sm text-gray-700 truncate max-w-xs">{selectedFile.name}</span>
+              <span className="text-xs text-gray-500 ml-2">
+                ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={uploadFile}
+                disabled={isUploading}
+                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploading ? 'Uploading...' : 'Send'}
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedFile(null);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
+                className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center">
           <input
             type="text"
@@ -115,12 +245,32 @@ const ChatRoom = () => {
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
             className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
           />
+          
+          {/* File Upload Button */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            accept="image/*,application/pdf,.doc,.docx,.txt,.xlsx,.xls,.ppt,.pptx"
+            className="hidden"
+          />
           <button
-            onClick={sendMessage}
-            className="ml-4 bg-green-600 text-white rounded-full p-3 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            onClick={() => fileInputRef.current?.click()}
+            className="ml-2 bg-gray-500 text-white rounded-full p-3 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            title="Upload file"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+          </button>
+
+          <button
+            onClick={sendMessage}
+            className="ml-2 bg-green-600 text-white rounded-full p-3 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            title="Send message"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>
         </div>
