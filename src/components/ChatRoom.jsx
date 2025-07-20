@@ -96,7 +96,7 @@ const ChatRoom = () => {
     formData.append('sender', user.name);
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/upload`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -104,14 +104,21 @@ const ChatRoom = () => {
 
       const fileMessage = {
         roomId,
-        content: response.data.filename,
+        content: response.data.data.content,
         sender: user.name,
-        type: selectedFile.type.startsWith('image/') ? 'image' : 'file',
-        originalName: selectedFile.name,
-        fileUrl: response.data.fileUrl
+        type: response.data.data.messageType,
+        originalName: response.data.data.fileName,
+        fileUrl: response.data.data.fileUrl,
+        messageType: response.data.data.messageType,
+        fileName: response.data.data.fileName
       };
 
+      // Emit the message via socket so other users see it in real-time
       socket.emit('send_message', fileMessage);
+      
+      // Add the message to local state immediately for the sender
+      setMessages(prevMessages => [...prevMessages, fileMessage]);
+      
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -125,20 +132,23 @@ const ChatRoom = () => {
   };
 
   const renderMessage = (msg) => {
-    if (msg.type === 'image') {
+    // Handle both frontend 'type' and backend 'messageType'
+    const messageType = msg.type || msg.messageType;
+    
+    if (messageType === 'image') {
       return (
         <div>
           <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
           <img 
-            src={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
-            alt={msg.originalName || 'Shared image'} 
+            src={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}` || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
+            alt={msg.originalName || msg.fileName || 'Shared image'} 
             className="max-w-xs rounded-lg mt-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => window.open(msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`, '_blank')}
+            onClick={() => window.open(msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}` || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`, '_blank')}
           />
-          <p className="text-xs text-gray-500 mt-1">{msg.originalName}</p>
+          <p className="text-xs text-gray-500 mt-1">{msg.originalName || msg.fileName}</p>
         </div>
       );
-    } else if (msg.type === 'file') {
+    } else if (messageType === 'file') {
       return (
         <div>
           <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
@@ -147,11 +157,11 @@ const ChatRoom = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <a 
-              href={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
-              download={msg.originalName}
+              href={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}` || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
+              download={msg.originalName || msg.fileName}
               className="text-blue-600 hover:text-blue-800 hover:underline flex-1 truncate"
             >
-              {msg.originalName || msg.content}
+              {msg.originalName || msg.fileName || msg.content}
             </a>
           </div>
         </div>
