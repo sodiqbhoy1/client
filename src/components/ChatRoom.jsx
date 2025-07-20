@@ -105,7 +105,7 @@ const ChatRoom = () => {
     });
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/api/upload`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -127,11 +127,8 @@ const ChatRoom = () => {
         fileName: responseData.fileName || responseData.originalname || selectedFile.name
       };
 
-      // Emit the message via socket so other users see it in real-time
+      // Only emit the message via socket - it will come back through the socket listener
       socket.emit('send_message', fileMessage);
-      
-      // Add the message to local state immediately for the sender
-      setMessages(prevMessages => [...prevMessages, fileMessage]);
       
       setSelectedFile(null);
       if (fileInputRef.current) {
@@ -152,19 +149,43 @@ const ChatRoom = () => {
     const messageType = msg.type || msg.messageType;
     
     if (messageType === 'image') {
+      // Construct proper image URL
+      let imageUrl;
+      if (msg.fileUrl && msg.fileUrl.startsWith('http')) {
+        imageUrl = msg.fileUrl;
+      } else if (msg.fileUrl && msg.fileUrl.startsWith('/uploads/')) {
+        imageUrl = `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}`;
+      } else {
+        imageUrl = `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`;
+      }
+      
       return (
         <div>
           <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
           <img 
-            src={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}` || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
+            src={imageUrl}
             alt={msg.originalName || msg.fileName || 'Shared image'} 
             className="max-w-xs rounded-lg mt-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => window.open(msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}` || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`, '_blank')}
+            onClick={() => window.open(imageUrl, '_blank')}
+            onError={(e) => {
+              console.error('Image failed to load:', imageUrl);
+              e.target.style.display = 'none';
+            }}
           />
           <p className="text-xs text-gray-500 mt-1">{msg.originalName || msg.fileName}</p>
         </div>
       );
     } else if (messageType === 'file') {
+      // Construct proper file URL
+      let fileUrl;
+      if (msg.fileUrl && msg.fileUrl.startsWith('http')) {
+        fileUrl = msg.fileUrl;
+      } else if (msg.fileUrl && msg.fileUrl.startsWith('/uploads/')) {
+        fileUrl = `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}`;
+      } else {
+        fileUrl = `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`;
+      }
+      
       return (
         <div>
           <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
@@ -173,7 +194,7 @@ const ChatRoom = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <a 
-              href={msg.fileUrl || `${import.meta.env.VITE_SOCKET_URL}${msg.fileUrl}` || `${import.meta.env.VITE_SOCKET_URL}/uploads/${msg.content}`} 
+              href={fileUrl}
               download={msg.originalName || msg.fileName}
               className="text-blue-600 hover:text-blue-800 hover:underline flex-1 truncate"
             >
