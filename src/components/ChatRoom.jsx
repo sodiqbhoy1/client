@@ -96,7 +96,7 @@ const ChatRoom = () => {
     formData.append('sender', user.name);
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/api/upload`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
