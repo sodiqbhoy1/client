@@ -95,6 +95,15 @@ const ChatRoom = () => {
     formData.append('roomId', roomId);
     formData.append('sender', user.name);
 
+    console.log('Uploading file:', {
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      fileType: selectedFile.type,
+      roomId,
+      sender: user.name,
+      endpoint: `${import.meta.env.VITE_SOCKET_URL}/api/upload`
+    });
+
     try {
       const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/api/upload`, formData, {
         headers: {
@@ -102,15 +111,20 @@ const ChatRoom = () => {
         },
       });
 
+      console.log('Upload response:', response.data);
+
+      // Handle different response formats from backend
+      const responseData = response.data.data || response.data;
+      
       const fileMessage = {
         roomId,
-        content: response.data.data.content,
+        content: responseData.fileName || responseData.originalname || selectedFile.name,
         sender: user.name,
-        type: response.data.data.messageType,
-        originalName: response.data.data.fileName,
-        fileUrl: response.data.data.fileUrl,
-        messageType: response.data.data.messageType,
-        fileName: response.data.data.fileName
+        type: responseData.messageType || (selectedFile.type.startsWith('image/') ? 'image' : 'file'),
+        originalName: responseData.fileName || responseData.originalname || selectedFile.name,
+        fileUrl: responseData.fileUrl || `/uploads/${responseData.filename || selectedFile.name}`,
+        messageType: responseData.messageType || (selectedFile.type.startsWith('image/') ? 'image' : 'file'),
+        fileName: responseData.fileName || responseData.originalname || selectedFile.name
       };
 
       // Emit the message via socket so other users see it in real-time
@@ -125,7 +139,9 @@ const ChatRoom = () => {
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Failed to upload file. Please try again.');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      alert(`Failed to upload file: ${error.response?.data?.error || error.message}`);
     } finally {
       setIsUploading(false);
     }
