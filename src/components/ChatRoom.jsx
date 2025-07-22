@@ -269,21 +269,21 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
       <footer className="bg-white p-4 border-t">
         {/* File Preview */}
         {selectedFile && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
-            <div className="flex items-center">
-              <svg className="w-6 h-6 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center min-w-0 flex-1">
+              <svg className="w-6 h-6 text-gray-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
-              <span className="text-sm text-gray-700 truncate max-w-xs">{selectedFile.name}</span>
-              <span className="text-xs text-gray-500 ml-2">
+              <span className="text-sm text-gray-700 truncate">{selectedFile.name}</span>
+              <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
                 ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
               </span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={uploadFile}
                 disabled={isUploading}
-                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 sm:flex-none bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading ? 'Uploading...' : 'Send'}
               </button>
@@ -294,7 +294,7 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
                     fileInputRef.current.value = '';
                   }
                 }}
-                className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+                className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-1 rounded text-sm hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -302,14 +302,14 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
           </div>
         )}
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-2 w-full">
           <input
             type="text"
             placeholder="Type a message..."
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+            className="flex-1 min-w-0 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
           />
           
           {/* File Upload Button */}
@@ -322,20 +322,20 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="ml-2 bg-gray-500 text-white rounded-full p-3 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="flex-shrink-0 bg-gray-500 text-white rounded-full p-2 sm:p-3 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
             title="Upload file"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
             </svg>
           </button>
 
           <button
             onClick={sendMessage}
-            className="ml-2 bg-green-600 text-white rounded-full p-3 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="flex-shrink-0 bg-green-600 text-white rounded-full p-2 sm:p-3 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
             title="Send message"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>
