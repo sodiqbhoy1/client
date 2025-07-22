@@ -75,7 +75,7 @@ const AdminSignup = () => {
     setIsLoading(true);
 
 // send to backend
-axios.post(`${import.meta.env.REACT_APP_API_URL}/admin/signup`, formData)
+axios.post(`${import.meta.env.VITE_APP_API_URL}/admin/signup`, formData)
 .then((response)=>{
   if(response.status === 201){
     setIsLoading(false);

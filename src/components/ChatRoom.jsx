@@ -33,7 +33,7 @@ const ChatRoom = () => {
 
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.REACT_APP_API_URL}/messages/${roomId}`);
+        const res = await axios.get(`${import.meta.env.VITE_APP_API_URL}/messages/${roomId}`);
         setMessages(res.data);
       } catch (error) {
         console.error("Error fetching messages:", error);
@@ -41,7 +41,7 @@ const ChatRoom = () => {
     };
     fetchMessages();
 
-    socket.emit('join_room', { roomId, username: user.name });
+    // socket.emit('join_room', { roomId, username: user.name });
 
     const handleReceiveMessage = (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
@@ -101,13 +101,13 @@ const ChatRoom = () => {
       fileType: selectedFile.type,
       roomId,
       sender: user.name,
-      endpoint: `${import.meta.env.REACT_APP_API_URL}/upload`,
-      environment: import.meta.env.REACT_APP_API_URL,
-      isProduction: import.meta.env.REACT_APP_API_URL.includes('render.com')
+      endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`,
+      environment: import.meta.env.VITE_APP_API_URL,
+      isProduction: import.meta.env.VITE_APP_API_URL.includes('render.com')
     });
 
     try {
-      const response = await axios.post(`${import.meta.env.REACT_APP_API_URL}/upload`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -174,9 +174,9 @@ const ChatRoom = () => {
       if (msg.fileUrl && msg.fileUrl.startsWith('http')) {
         imageUrl = msg.fileUrl;
       } else if (msg.fileUrl && msg.fileUrl.startsWith('/uploads/')) {
-        imageUrl = `${import.meta.env.REACT_APP_API_URL}${msg.fileUrl}`;
+        imageUrl = `${import.meta.env.VITE_APP_API_URL}${msg.fileUrl}`;
       } else {
-        imageUrl = `${import.meta.env.REACT_APP_API_URL}/uploads/${msg.content}`;
+        imageUrl = `${import.meta.env.VITE_APP_API_URL}/uploads/${msg.content}`;
       }
       
       return (
@@ -201,9 +201,9 @@ const ChatRoom = () => {
       if (msg.fileUrl && msg.fileUrl.startsWith('http')) {
         fileUrl = msg.fileUrl;
       } else if (msg.fileUrl && msg.fileUrl.startsWith('/uploads/')) {
-        fileUrl = `${import.meta.env.REACT_APP_API_URL}${msg.fileUrl}`;
+        fileUrl = `${import.meta.env.VITE_APP_API_URL}${msg.fileUrl}`;
       } else {
-        fileUrl = `${import.meta.env.REACT_APP_API_URL}/uploads/${msg.content}`;
+        fileUrl = `${import.meta.env.VITE_APP_API_URL}/uploads/${msg.content}`;
       }
       
       return (

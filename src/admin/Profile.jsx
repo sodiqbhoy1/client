@@ -39,7 +39,7 @@ const Profile = () => {
           return;
         }
 
-        const response = await axios.get(`${import.meta.env.REACT_APP_API_URL}/api/admin/profile`, {
+        const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/api/admin/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -155,7 +155,7 @@ const Profile = () => {
       };
       
       // Send the updated data to the backend
-      await axios.put(`${import.meta.env.REACT_APP_API_URL}/api/admin/profile`, updatedData, {
+      await axios.put(`${import.meta.env.VITE_APP_API_URL}/api/admin/profile`, updatedData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -200,7 +200,7 @@ const Profile = () => {
       }
       
       // Send password update to backend
-      await axios.put(`${import.meta.env.REACT_APP_API_URL}/api/admin/change-password`, {
+      await axios.put(`${import.meta.env.VITE_APP_API_URL}/api/admin/change-password`, {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       }, {

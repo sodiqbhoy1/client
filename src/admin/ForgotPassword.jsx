@@ -25,7 +25,7 @@ const ForgotPassword = () => {
     setError('');
     
     try {
-      const response = await axios.post(`${import.meta.env.REACT_APP_API_URL}/admin/forgot-password`, { email });
+      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/admin/forgot-password`, { email });
       
       if (response.status === 200) {
         setIsSuccess(true);
