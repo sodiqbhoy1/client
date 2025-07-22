@@ -31,7 +31,7 @@ const AdminLogin = () => {
     console.log('Admin login attempt:', formData);
     
     try {
-      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/admin/login`, formData);
+      const response = await axios.post(`${import.meta.env.REACT_APP_API_URL}/admin/login`, formData);
 
       if (response.status === 200) {
         console.log('Successful login:', response.data);

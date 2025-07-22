@@ -1,13 +1,13 @@
 import { io } from "socket.io-client";
 
-const socket = io(import.meta.env.VITE_SOCKET_URL, {
+const socket = io(import.meta.env.REACT_APP_API_URL, {
   transports: ['websocket', 'polling'],
   autoConnect: true,
   reconnection: true,
   reconnectionDelay: 5000,
   reconnectionAttempts: 5,
   timeout: 20000,
-}); // replace with your backend URL in production
+}); // connect to our backend URL
 
 // Debug connection events
 socket.on('connect', () => {

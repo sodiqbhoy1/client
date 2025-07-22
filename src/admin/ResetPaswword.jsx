@@ -29,7 +29,7 @@ const ResetPassword = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/admin/reset-password/${token}`, { newPassword: password });
+      const response = await axios.post(`${import.meta.env.REACT_APP_API_URL}/admin/reset-password/${token}`, { newPassword: password });
       if (response.status === 200) {
         setSuccess(true);
       }

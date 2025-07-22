@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router'
 
-const API_URL = import.meta.env.VITE_SOCKET_URL
+const API_URL = import.meta.env.REACT_APP_API_URL
 
 /**
  * Dashboard displays a greeting and the active rooms count.

@@ -5,7 +5,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   const createRoom = async () => {
-    const res = await axios.post(`${import.meta.env.VITE_SOCKET_URL}/api/create-room`);
+    const res = await axios.post(`${import.meta.env.REACT_APP_API_URL}/api/create-room`);
     navigate(`/chat/${res.data.roomId}`);
   };
 
