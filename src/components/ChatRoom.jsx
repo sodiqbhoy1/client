@@ -11,6 +11,7 @@ const ChatRoom = () => {
   const [text, setText] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -28,7 +29,6 @@ const ChatRoom = () => {
 
   useEffect(() => {
     // This effect handles fetching messages and socket communication.
-    // It should only run when we have a valid user.
     if (!user || !roomId) return;
 
     const fetchMessages = async () => {
@@ -41,17 +41,31 @@ const ChatRoom = () => {
     };
     fetchMessages();
 
-    // socket.emit('join_room', { roomId, username: user.name });
+    // --- Socket Connection Logic ---
+    
+    // 1. Manually connect to the socket
+    socket.connect();
 
-    const handleReceiveMessage = (data) => {
+    // 2. Define event handlers
+    const onConnect = () => {
+      console.log('Socket connected, joining room:', roomId);
+      socket.emit('join_room', { roomId, username: user.name });
+    };
+
+    const onReceiveMessage = (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
     };
 
-    socket.on('receive_message', handleReceiveMessage);
+    // 3. Attach event listeners
+    socket.on('connect', onConnect);
+    socket.on('receive_message', onReceiveMessage);
 
-    // Cleanup on component unmount
+    // 4. Cleanup on component unmount
     return () => {
-      socket.off('receive_message', handleReceiveMessage);
+      console.log('Leaving room and disconnecting socket.');
+      socket.off('connect', onConnect);
+      socket.off('receive_message', onReceiveMessage);
+      socket.disconnect();
     };
   }, [roomId, user]);
 
@@ -61,7 +75,13 @@ const ChatRoom = () => {
   }, [messages]);
 
   const sendMessage = () => {
-    if (text.trim() === '' || !user) return;
+    if (text.trim() === '' || !user || !socket.connected) {
+      if (!socket.connected) {
+        console.error('Cannot send message, socket is not connected.');
+        alert('Connection lost. Please refresh the page.');
+      }
+      return;
+    }
 
     const messageData = {
       roomId,
@@ -89,6 +109,12 @@ const ChatRoom = () => {
   const uploadFile = async () => {
     if (!selectedFile || !user) return;
 
+    if (!socket.connected) {
+      console.error('Cannot send file, socket is not connected.');
+      alert('Connection lost. Please refresh the page.');
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -101,40 +127,18 @@ const ChatRoom = () => {
       fileType: selectedFile.type,
       roomId,
       sender: user.name,
-      endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`,
-      environment: import.meta.env.VITE_APP_API_URL,
-      isProduction: import.meta.env.VITE_APP_API_URL.includes('render.com')
+endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
     });
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/upload`, formData, {
+      await axios.post(`${import.meta.env.VITE_APP_API_URL}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         timeout: 30000, // 30 second timeout for production
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity
+        
       });
-
-      console.log('Upload response:', response.data);
-
-      // Handle different response formats from backend
-      const responseData = response.data.data || response.data;
-      
-      const fileMessage = {
-        roomId,
-        content: responseData.fileName || responseData.originalname || selectedFile.name,
-        sender: user.name,
-        type: responseData.messageType || (selectedFile.type.startsWith('image/') ? 'image' : 'file'),
-        originalName: responseData.fileName || responseData.originalname || selectedFile.name,
-        fileUrl: responseData.fileUrl || `/uploads/${responseData.filename || selectedFile.name}`,
-        messageType: responseData.messageType || (selectedFile.type.startsWith('image/') ? 'image' : 'file'),
-        fileName: responseData.fileName || responseData.originalname || selectedFile.name
-      };
-
-      // Only emit the message via socket - it will come back through the socket listener
-      socket.emit('send_message', fileMessage);
-      
+       // Clear the selected file from the UI after successful upload.
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -142,27 +146,22 @@ const ChatRoom = () => {
     } catch (error) {
       console.error('Error uploading file:', error);
       console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error config:', error.config);
-      
-      let errorMessage = 'Failed to upload file. ';
+     let errorMessage = 'Failed to upload file. ';
       if (error.code === 'ECONNABORTED') {
-        errorMessage += 'Request timeout - file too large or slow connection.';
+        errorMessage += 'Request timeout - the file might be too large or your connection is slow.';
       } else if (error.response?.status === 413) {
-        errorMessage += 'File too large.';
-      } else if (error.response?.status === 500) {
-        errorMessage += 'Server error.';
-      } else if (error.response?.status === 0 || error.message.includes('Network Error')) {
-        errorMessage += 'Network error - check your connection.';
+        errorMessage += 'The file is too large.';
+      } else if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
       } else {
-        errorMessage += error.response?.data?.error || error.message;
-      }
-      
-      alert(errorMessage);
+        errorMessage += 'Please try again.';
+      }  
+       alert(errorMessage);
     } finally {
       setIsUploading(false);
     }
   };
+  
 
   const renderMessage = (msg) => {
     // Handle both frontend 'type' and backend 'messageType'
@@ -185,8 +184,8 @@ const ChatRoom = () => {
           <img 
             src={imageUrl}
             alt={msg.originalName || msg.fileName || 'Shared image'} 
-            className="max-w-xs rounded-lg mt-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => window.open(imageUrl, '_blank')}
+            className="max-w-[150px] rounded-lg mt-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setLightboxImage(imageUrl)}
             onError={(e) => {
               console.error('Image failed to load:', imageUrl);
               e.target.style.display = 'none';
@@ -253,7 +252,7 @@ const ChatRoom = () => {
               className={`flex ${msg.sender === user.name ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-xs lg:max-w-md p-3 rounded-lg shadow ${
+                className={`max-w-[85%] p-3 rounded-lg shadow ${
                   msg.sender === user.name
                     ? 'bg-green-200 text-right'
                     : 'bg-white text-left'
@@ -310,7 +309,7 @@ const ChatRoom = () => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
           />
           
           {/* File Upload Button */}
@@ -342,6 +341,27 @@ const ChatRoom = () => {
           </button>
         </div>
       </footer>
+
+      {/* Lightbox for viewing images */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 cursor-pointer"
+          onClick={() => setLightboxImage(null)}
+        >
+          <img 
+            src={lightboxImage} 
+            alt="Lightbox" 
+            className="max-w-[90vw] max-h-[90vh] object-contain"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on the image itself
+          />
+          <button 
+            onClick={() => setLightboxImage(null)} 
+            className="absolute top-4 right-4 text-white text-4xl font-bold"
+          >
+            &times;
+          </button>
+        </div>
+      )}
     </div>
   );
 };
