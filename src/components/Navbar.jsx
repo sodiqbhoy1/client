@@ -10,20 +10,20 @@ const Navbar = () => {
       const navLinks = [
     { href: '/', text: 'Home' },
     { href: '/meet-nathan', text: 'Meet Nathan' },
-    { href: '#', text: 'Volunteer' },
+    { href: '/volunteer', text: 'Volunteer' },
   ];
 
   return (
     <>
       
         {/* Navbar */}
-            <nav className="bg-white text- shadow-lg ">
-              <div className="max-w-7xl px-3 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-32">
+            <nav className="bg-white shadow-lg">
+              <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+                <div className="flex items-center justify-between h-28">
                   {/* Logo */}
                   <div className="flex-shrink-0">
                     <a href="#">
-                      <img className="h-22 w-auto" src={Logo} alt="Justice Nathan Hecht Logo" />
+                      <img className="h-20 w-auto" src={Logo} alt="Justice Nathan Hecht Logo" />
                     </a>
                   </div>
       
@@ -34,7 +34,7 @@ const Navbar = () => {
                         {link.text}
                       </a>
                     ))}
-                    <a href="#" className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-md text-sm font-bold uppercase transition-colors duration-200">
+                    <a href="#" className="bg-[#002855] hover:bg-[#242a45] text-white px-6 py-3 rounded-md text-sm font-bold uppercase transition-colors duration-200">
                       Donate
                     </a>
                   </div>
@@ -62,7 +62,7 @@ const Navbar = () => {
                       {link.text}
                     </a>
                   ))}
-                  <a href="#" className="bg-red-600 hover:bg-red-700 text-white block px-3 py-2 rounded-md text-base font-bold">
+                  <a href="#" className="bg-[#191E31] hover:bg-[#242a45] text-white block px-4 py-3 rounded-md text-base font-bold">
                     Donate
                   </a>
                 </div>

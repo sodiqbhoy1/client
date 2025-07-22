@@ -1,30 +1,14 @@
-// src/pages/LandingPage.jsx
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+
 import ChiefJudge from '../assets/chiefjustice.jpg'
 import Chief from '../assets/chief.jpg'
 import Justice from '../assets/justice.jpg'
 import Navbar from './Navbar';
 import Footer from './Footer';
 
-const LandingPage = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const navigate = useNavigate();
-  const { roomId } = useParams(); // Correctly get roomId from URL path
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name || !email || !roomId) return alert("Missing fields or room ID.");
-    // Save user info to sessionStorage to persist across refreshes
-    sessionStorage.setItem('chatUser', JSON.stringify({ name, email }));
-    navigate(`/chat/${roomId}`);
-  };
-
-
+const HomePage = () => {
   return (
     <>
-      {/* navbar */}
+            {/* navbar */}
       <Navbar />
 
       {/* Main Content */}
@@ -45,36 +29,7 @@ const LandingPage = () => {
         <span className="text-xl sm:text-2xl md:text-4xl">CHIEF JUSTICE NATHAN HECHT</span>
       </h2>
 
-      {/* Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col lg:flex-row items-center justify-end gap-4"
-      >
-        <input
-          id="name"
-          type="text"
-          placeholder="Enter your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          className="bg-transparent border border-white placeholder-white text-white px-3 py-2 rounded-md w-full lg:w-auto focus:outline-none focus:border-red-500"
-        />
-        <input
-          id="email"
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="bg-transparent border border-white placeholder-white text-white px-3 py-2 rounded-md w-full lg:w-auto focus:outline-none focus:border-red-500"
-        />
-        <button
-          type="submit"
-          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md w-full lg:w-auto font-medium"
-        >
-          Join Chat
-        </button>
-      </form>
+      
     </div>
   </div>
 </section>
@@ -176,7 +131,7 @@ const LandingPage = () => {
 </div>
 
     </>
-  );
-};
+  )
+}
 
-export default LandingPage;
+export default HomePage

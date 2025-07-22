@@ -101,7 +101,9 @@ const ChatRoom = () => {
       fileType: selectedFile.type,
       roomId,
       sender: user.name,
-      endpoint: `${import.meta.env.VITE_SOCKET_URL}/api/upload`
+      endpoint: `${import.meta.env.VITE_SOCKET_URL}/upload`,
+      environment: import.meta.env.VITE_SOCKET_URL,
+      isProduction: import.meta.env.VITE_SOCKET_URL.includes('render.com')
     });
 
     try {
@@ -109,6 +111,9 @@ const ChatRoom = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 30000, // 30 second timeout for production
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
       });
 
       console.log('Upload response:', response.data);
@@ -138,7 +143,22 @@ const ChatRoom = () => {
       console.error('Error uploading file:', error);
       console.error('Error response:', error.response?.data);
       console.error('Error status:', error.response?.status);
-      alert(`Failed to upload file: ${error.response?.data?.error || error.message}`);
+      console.error('Error config:', error.config);
+      
+      let errorMessage = 'Failed to upload file. ';
+      if (error.code === 'ECONNABORTED') {
+        errorMessage += 'Request timeout - file too large or slow connection.';
+      } else if (error.response?.status === 413) {
+        errorMessage += 'File too large.';
+      } else if (error.response?.status === 500) {
+        errorMessage += 'Server error.';
+      } else if (error.response?.status === 0 || error.message.includes('Network Error')) {
+        errorMessage += 'Network error - check your connection.';
+      } else {
+        errorMessage += error.response?.data?.error || error.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsUploading(false);
     }
