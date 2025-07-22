@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Profile = () => {
-  // Dummy user data - you can replace this later with real data from your database
   const [user, setUser] = useState({
-    id: 1,
-    name: 'Admin User',
-    email: 'admin@chatapp.com',
+    name: '',
+    email: '',
     role: 'Admin',
     avatar: 'https://i.pravatar.cc/300?img=8',
-    createdAt: '2025-01-15T10:30:00',
-    lastActive: '2025-07-22T08:45:00',
-    bio: 'Lead administrator for the chat application platform.',
-    phoneNumber: '+1 (555) 123-4567',
-    location: 'San Francisco, CA',
+    createdAt: '',
+    lastActive: '',
+    bio: '',
+    phoneNumber: '',
+    location: '',
     socialLinks: {
-      twitter: 'adminuser',
-      github: 'adminuser',
-      linkedin: 'admin-user'
+      twitter: '',
+      github: '',
+      linkedin: ''
     },
     preferences: {
       notifications: true,
@@ -24,6 +23,64 @@ const Profile = () => {
       twoFactorAuth: true
     }
   });
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAdminDetails = async () => {
+      try {
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          setError('Not authenticated. Please login.');
+          setLoading(false);
+          return;
+        }
+
+        const response = await axios.get('/api/admin/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        // Transform the backend data to match our frontend format
+        const adminData = response.data;
+        
+        setUser({
+          id: adminData._id,
+          name: adminData.name || '',
+          email: adminData.email || '',
+          role: adminData.role || 'Admin',
+          avatar: adminData.avatar || 'https://i.pravatar.cc/300?img=8',
+          createdAt: adminData.createdAt || new Date().toISOString(),
+          lastActive: adminData.lastActive || new Date().toISOString(),
+          bio: adminData.bio || '',
+          phoneNumber: adminData.phoneNumber || '',
+          location: adminData.location || '',
+          socialLinks: {
+            twitter: adminData.socialLinks?.twitter || '',
+            github: adminData.socialLinks?.github || '',
+            linkedin: adminData.socialLinks?.linkedin || ''
+          },
+          preferences: {
+            notifications: adminData.preferences?.notifications ?? true,
+            darkMode: adminData.preferences?.darkMode ?? false,
+            twoFactorAuth: adminData.preferences?.twoFactorAuth ?? true
+          }
+        });
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching admin details:', err);
+        setError(err.response?.data?.message || 'Failed to fetch profile data');
+        setLoading(false);
+      }
+    };
+
+    fetchAdminDetails();
+  }, []);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -67,34 +124,59 @@ const Profile = () => {
   };
 
   // Handle general form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would send the updated data to your backend
-    // For now, we'll just update the local state
-    setUser({
-      ...user,
-      name: formData.name,
-      email: formData.email,
-      bio: formData.bio,
-      phoneNumber: formData.phoneNumber,
-      location: formData.location,
-      socialLinks: {
-        twitter: formData.twitter,
-        github: formData.github,
-        linkedin: formData.linkedin
-      },
-      preferences: {
-        notifications: formData.notifications,
-        darkMode: formData.darkMode,
-        twoFactorAuth: formData.twoFactorAuth
+    
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        alert('Authentication token missing. Please login again.');
+        return;
       }
-    });
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+      
+      const updatedData = {
+        name: formData.name,
+        email: formData.email,
+        bio: formData.bio,
+        phoneNumber: formData.phoneNumber,
+        location: formData.location,
+        socialLinks: {
+          twitter: formData.twitter,
+          github: formData.github,
+          linkedin: formData.linkedin
+        },
+        preferences: {
+          notifications: formData.notifications,
+          darkMode: formData.darkMode,
+          twoFactorAuth: formData.twoFactorAuth
+        }
+      };
+      
+      // Send the updated data to the backend
+      await axios.put('/api/admin/profile', updatedData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      // Update the local state
+      setUser({
+        ...user,
+        ...updatedData
+      });
+      
+      setIsEditing(false);
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert(`Failed to update profile: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   // Handle password form submission
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     
     // Basic validation
@@ -108,13 +190,35 @@ const Profile = () => {
       return;
     }
     
-    // Here you would send the password update to your backend
-    alert('Password updated successfully!');
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        alert('Authentication token missing. Please login again.');
+        return;
+      }
+      
+      // Send password update to backend
+      await axios.put('/api/admin/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      alert('Password updated successfully!');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      alert(`Failed to update password: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   // Format date for display
@@ -132,40 +236,69 @@ const Profile = () => {
       <div className="w-full max-w-5xl mx-auto">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">Your Profile</h1>
         
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Profile Header */}
-          <div className="bg-blue-700 p-6 text-white">
-            <div className="flex flex-col sm:flex-row items-center">
-              <div className="mb-4 sm:mb-0 sm:mr-6">
-                <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden">
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name} 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              </div>
-              <div className="text-center sm:text-left">
-                <h2 className="text-2xl font-bold">{user.name}</h2>
-                <p className="text-blue-100">{user.email}</p>
-                <div className="mt-2">
-                  <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-800 text-white">
-                    {user.role}
-                  </span>
-                </div>
-              </div>
-              {!isEditing && (
-                <div className="mt-4 sm:mt-0 sm:ml-auto">
-                  <button 
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-white text-blue-700 rounded-md font-medium hover:bg-blue-50 transition-colors"
-                  >
-                    Edit Profile
-                  </button>
-                </div>
-              )}
-            </div>
+        {loading ? (
+          <div className="bg-white rounded-lg shadow-md p-8 flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-700 mb-4"></div>
+            <p className="text-gray-600">Loading profile information...</p>
           </div>
+        ) : error ? (
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 112 0v4a1 1 0 11-2 0V9zm1-5a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            {/* Profile Header */}
+            <div className="bg-blue-700 p-6 text-white">
+              <div className="flex flex-col sm:flex-row items-center">
+                <div className="mb-4 sm:mb-0 sm:mr-6">
+                  <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden">
+                    <img 
+                      src={user.avatar} 
+                      alt={user.name} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                </div>
+                <div className="text-center sm:text-left">
+                  <h2 className="text-2xl font-bold">{user.name}</h2>
+                  <p className="text-blue-100">{user.email}</p>
+                  <div className="mt-2">
+                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-800 text-white">
+                      {user.role}
+                    </span>
+                  </div>
+                </div>
+                {!isEditing && (
+                  <div className="mt-4 sm:mt-0 sm:ml-auto">
+                    <button 
+                      onClick={() => setIsEditing(true)}
+                      className="px-4 py-2 bg-white text-blue-700 rounded-md font-medium hover:bg-blue-50 transition-colors"
+                    >
+                      Edit Profile
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           
           {/* Profile Tabs */}
           <div className="border-b border-gray-200">
@@ -650,6 +783,7 @@ const Profile = () => {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );
