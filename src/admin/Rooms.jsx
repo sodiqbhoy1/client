@@ -1,11 +1,11 @@
-// src/pages/RoomManager.jsx
+// src/pages/Rooms.jsx
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
-const RoomManager = () => {
+const Rooms = () => {
   const [roomName, setRoomName] = useState('');
   const [rooms, setRooms] = useState([]);
   const [copiedRoomId, setCopiedRoomId] = useState(null);
@@ -108,11 +108,11 @@ const RoomManager = () => {
               placeholder="Enter a name for your new room"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
-              className="flex-1 p-2 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 p-2 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005c45]"
             />
             <button
               onClick={createRoom}
-              className="bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-md font-semibold hover:bg-blue-800 transition-colors"
+              className="bg-[#004030] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-md font-semibold hover:bg-[#005c45] transition-colors"
             >
               Create Room
             </button>
@@ -130,7 +130,7 @@ const RoomManager = () => {
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => copyLink(room.roomId)}
-                    className="bg-blue-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-blue-800 transition-colors flex-1 sm:flex-none"
+                    className="bg-[#004030] text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-[#005c45] transition-colors flex-1 sm:flex-none"
                   >
                     {copiedRoomId === room.roomId ? 'Copied!' : 'Copy Link'}
                   </button>
@@ -205,4 +205,4 @@ const RoomManager = () => {
   );
 };
 
-export default RoomManager;
+export default Rooms;

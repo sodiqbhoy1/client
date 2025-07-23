@@ -1,8 +1,6 @@
-
 import ChatRoom from './components/ChatRoom'
 import { Route, Routes } from 'react-router'
 import LandingPage from './components/LandingPage'
-import RoomManager from './components/RoomManager'
 import Nathan from './components/Nathan'
 import AdminHome from './admin/AdminHome'
 import AdminLogin from './admin/AdminLogin'
@@ -12,9 +10,12 @@ import AdminDashboard from './admin/AdminDashboard'
 import Dashboard from './admin/Dashboard'
 import Rooms from './admin/Rooms'
 import Users from './admin/Users'
-import ResetPassword from './admin/ResetPaswword'
-import Volunteer from './components/Volunteer'
-import HomePage from './components/HomePage'
+import ResetPassword from './admin/ResetPaswword';
+import Volunteer from './components/Volunteer';
+import HomePage from './components/HomePage';
+import NotFound from './components/NotFound';
+import ProtectedRoute from './admin/ProtectedRoute';
+import Profile from './admin/Profile'
 
 const App = () => {
   return (
@@ -32,14 +33,23 @@ const App = () => {
         <Route path="/join/:roomId" element={<LandingPage />} />
         <Route path="/chat/:roomId" element={<ChatRoom />} />
      
-     {/* admin dashboard */}
-     <Route path='/admin-dashboard/*' element={<AdminDashboard />} >
-<Route index element={<Dashboard/>} />
-<Route path='rooms' element={<Rooms />} />
-<Route path='users' element={<Users />} />
-
-
+     {/* admin dashboard - Now Protected */}
+     <Route 
+        path='/admin-dashboard/*' 
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } 
+      >
+        <Route index element={<Dashboard/>} />
+        <Route path='rooms' element={<Rooms />} />
+        <Route path='users' element={<Users />} />
+        <Route path='profile' element={<Profile />} />
      </Route>
+     
+     {/* 404 Not Found - This should be the last route */}
+  <Route path='*' element={<NotFound/>} />
      
      
      

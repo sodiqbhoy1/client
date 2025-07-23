@@ -96,11 +96,11 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0`}>
-        <div className="flex items-center justify-center h-20 bg-blue-700">
+        <div className="flex items-center justify-center h-20 bg-[#004030]">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-[#004030]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
@@ -120,12 +120,12 @@ const AdminDashboard = () => {
                 to={item.href}
                 className={`group flex items-center px-4 py-3 text-base font-medium rounded-md transition-colors duration-150 ${
                   isCurrentPath(item.href)
-                    ? 'bg-blue-100 text-blue-800 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-700'
+                    ? 'bg-[#e6f2ef] text-[#004030] font-semibold'
+                    : 'text-gray-700 hover:bg-[#e6f2ef] hover:text-[#004030]'
                 }`}
                 onClick={() => setIsSidebarOpen(false)}
               >
-                <span className={`mr-3 ${isCurrentPath(item.href) ? 'text-blue-700' : 'text-gray-500 group-hover:text-blue-700'}`}>
+                <span className={`mr-3 ${isCurrentPath(item.href) ? 'text-[#004030]' : 'text-gray-500 group-hover:text-[#004030]'}`}>
                   {item.icon}
                 </span>
                 {item.name}
@@ -151,7 +151,7 @@ const AdminDashboard = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="mt-3 w-full flex items-center justify-center px-4 py-3 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors duration-150"
+            className="mt-3 w-full flex items-center justify-center px-4 py-3 text-base font-medium text-[#005c45] bg-[#e6f2ef] border border-[#b3d9d0] rounded-md hover:bg-[#cce6e1] transition-colors duration-150"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -190,8 +190,8 @@ const AdminDashboard = () => {
 
               {/* Profile dropdown placeholder */}
               <div className="relative">
-                <button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  <div className="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center">
+                <button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#005c45]">
+                  <div className="w-8 h-8 bg-[#004030] rounded-full flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -220,8 +220,8 @@ const AdminDashboard = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 transition-opacity">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm m-4">
             <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-full bg-[#e6f2ef] flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#004030]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </div>
@@ -241,7 +241,7 @@ const AdminDashboard = () => {
                 <button
                   type="button"
                   onClick={confirmLogout}
-                  className="px-4 py-2 bg-blue-700 text-white rounded-md font-medium hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  className="px-4 py-2 bg-[#004030] text-white rounded-md font-medium hover:bg-[#005c45] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#005c45] transition-colors"
                 >
                   Logout
                 </button>
