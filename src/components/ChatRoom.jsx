@@ -243,7 +243,10 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
         window.socket.close?.();
       }
     } catch (e) {
+
       // no-op
+      console.log(e);
+      
     }
 
     if (window.history.length > 1) {
