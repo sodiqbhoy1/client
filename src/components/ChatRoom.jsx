@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import socket from '../socket';
 import axios from 'axios';
@@ -232,16 +232,49 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
     }
   };
 
+  const leaveRoom = () => {
+    if (!window.confirm('Leave this room?')) return;
+
+    try {
+      // Optional: notify/close socket if your app exposes it globally
+      if (window.socket) {
+        window.socket.emit?.('leave', { roomId, user });
+        window.socket.disconnect?.();
+        window.socket.close?.();
+      }
+    } catch (e) {
+      // no-op
+    }
+
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/admin-dashboard/rooms', { replace: true });
+    }
+  };
+
   // Render a loading state or null while checking for user session
   if (!user) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      <header className="bg-green-600 text-white p-4 shadow-md">
-        <h1 className="text-2xl font-bold">Room: {roomId}</h1>
-        <p>Welcome, {user.name}</p>
+    <div className="flex flex-col h-screen">
+      {/* Leave bar */}
+      <header className="flex items-center justify-between gap-3 p-3 border-b bg-white">
+        <div className="min-w-0">
+          <p className="text-xs text-gray-500">Room</p>
+          <h2 className="text-sm sm:text-base font-semibold truncate">{roomId}</h2>
+        </div>
+        <button
+          onClick={leaveRoom}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          Leave
+        </button>
       </header>
 
       <main className="flex-1 overflow-y-auto p-4">

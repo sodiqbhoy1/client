@@ -12,6 +12,10 @@ const Rooms = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Prompt for name before join
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [pendingRoomId, setPendingRoomId] = useState(null);
   const navigate = useNavigate();
 
   const fetchRooms = async () => {
@@ -87,7 +91,26 @@ const Rooms = () => {
     // Set admin user info in sessionStorage to bypass landing page
     const adminUser = { name: 'Admin', email: 'admin@chatapp.com' };
     sessionStorage.setItem('chatUser', JSON.stringify(adminUser));
-    navigate(`/chat/${roomId}`);
+    // Prompt for name instead of immediate join
+    setPendingRoomId(roomId);
+    setShowNameModal(true);
+  };
+
+  const confirmNameJoin = () => {
+    const displayName = nameInput.trim() || 'Admin';
+    const adminUser = { name: displayName, role: 'admin' };
+    sessionStorage.setItem('chatUser', JSON.stringify(adminUser));
+    const target = pendingRoomId;
+    setShowNameModal(false);
+    setNameInput('');
+    setPendingRoomId(null);
+    if (target) navigate(`/chat/${target}`);
+  };
+
+  const cancelNameModal = () => {
+    setShowNameModal(false);
+    setNameInput('');
+    setPendingRoomId(null);
   };
 
   useEffect(() => {
@@ -156,6 +179,40 @@ const Rooms = () => {
           )}
         </div>
       </div>
+
+      {/* Name Prompt Modal */}
+      {showNameModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white w-full max-w-sm mx-4 rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Enter your name</h3>
+            <p className="text-sm text-gray-600 mt-1">This name will be shown in the chat.</p>
+            <div className="mt-4">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && confirmNameJoin()}
+                placeholder="e.g., Jane Doe"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005c45]"
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={cancelNameModal}
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmNameJoin}
+                className="px-4 py-2 rounded-md bg-[#004030] text-white hover:bg-[#005c45]"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

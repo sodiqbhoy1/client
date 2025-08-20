@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import axios from 'axios'
+import React, { useEffect, useState } from 'react'
 import { Link, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router'
 import Dashboard from './Dashboard';
 import Rooms from './Rooms';
@@ -82,6 +83,21 @@ const AdminDashboard = () => {
     return false;
   };
 
+  // Fetch admin details to display name and email in sidebar
+  const [admin, setAdmin] = useState({ firstName: '', lastName: '', email: '' });
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    axios
+      .get(`${import.meta.env.VITE_APP_API_URL}/admin/details`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => setAdmin(res.data || {}))
+      .catch(() => {});
+  }, []);
+  const fullName = [admin.firstName, admin.lastName].filter(Boolean).join(' ') || 'Admin';
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Mobile sidebar overlay */}
@@ -145,8 +161,8 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-700">Admin User</p>
-              <p className="text-xs text-gray-500">admin@example.com</p>
+              <p className="text-sm font-medium text-gray-700">{fullName}</p>
+              <p className="text-xs text-gray-500">{admin.email || ''}</p>
             </div>
           </div>
           <button
