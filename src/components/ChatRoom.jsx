@@ -162,11 +162,32 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
     }
   };
   
+  // Helper to build a usable file URL and handle Cloudinary PDFs
+  const getResolvedFileUrl = (msg) => {
+    let url;
+    if (msg.fileUrl && msg.fileUrl.startsWith('http')) {
+      url = msg.fileUrl;
+    } else if (msg.fileUrl && msg.fileUrl.startsWith('/uploads/')) {
+      url = `${import.meta.env.VITE_APP_API_URL}${msg.fileUrl}`;
+    } else {
+      url = `${import.meta.env.VITE_APP_API_URL}/uploads/${msg.content}`;
+    }
+
+    const name = (msg.originalName || msg.fileName || msg.content || '').toLowerCase();
+    const isPdf = name.endsWith('.pdf');
+
+    // If Cloudinary URL and a PDF, prefer raw delivery for better preview behavior
+    if (isPdf && url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
+      url = url.replace('/image/upload/', '/raw/upload/');
+    }
+
+    return { url, isPdf };
+  };
 
   const renderMessage = (msg) => {
     // Handle both frontend 'type' and backend 'messageType'
     const messageType = msg.type || msg.messageType;
-    
+
     if (messageType === 'image') {
       // Construct proper image URL
       let imageUrl;
@@ -195,16 +216,8 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
         </div>
       );
     } else if (messageType === 'file') {
-      // Construct proper file URL
-      let fileUrl;
-      if (msg.fileUrl && msg.fileUrl.startsWith('http')) {
-        fileUrl = msg.fileUrl;
-      } else if (msg.fileUrl && msg.fileUrl.startsWith('/uploads/')) {
-        fileUrl = `${import.meta.env.VITE_APP_API_URL}${msg.fileUrl}`;
-      } else {
-        fileUrl = `${import.meta.env.VITE_APP_API_URL}/uploads/${msg.content}`;
-      }
-      
+      const { url: fileUrl, isPdf } = getResolvedFileUrl(msg);
+
       return (
         <div>
           <p className="text-sm font-semibold text-gray-600">{msg.sender}</p>
@@ -212,10 +225,16 @@ endpoint: `${import.meta.env.VITE_APP_API_URL}/upload`
             <svg className="w-6 h-6 text-gray-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <a 
+
+            {/* For PDFs: open in new tab, no download attribute (cross-origin) */}
+            {/* For other files: keep download attribute */}
+            <a
               href={fileUrl}
-              download={msg.originalName || msg.fileName}
-              className="text-blue-600 hover:text-blue-800 hover:underline flex-1 truncate"
+              {...(isPdf
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : { download: msg.originalName || msg.fileName || true })}
+              className="text-[#005c45] hover:text-[#004030] hover:underline flex-1 truncate"
+              title={msg.originalName || msg.fileName || msg.content}
             >
               {msg.originalName || msg.fileName || msg.content}
             </a>
