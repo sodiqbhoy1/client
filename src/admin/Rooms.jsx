@@ -97,7 +97,11 @@ const Rooms = () => {
   };
 
   const confirmNameJoin = () => {
-    const displayName = nameInput.trim() || 'Admin';
+    const displayName = nameInput.trim();
+    if (!displayName) {
+      alert("Please enter a name to join the room.");
+      return; // Stop the function if the name is empty
+    }
     const adminUser = { name: displayName, role: 'admin' };
     sessionStorage.setItem('chatUser', JSON.stringify(adminUser));
     const target = pendingRoomId;
@@ -205,7 +209,8 @@ const Rooms = () => {
               </button>
               <button
                 onClick={confirmNameJoin}
-                className="px-4 py-2 rounded-md bg-[#004030] text-white hover:bg-[#005c45]"
+                disabled={!nameInput.trim()}
+                className="px-4 py-2 rounded-md bg-[#004030] text-white hover:bg-[#005c45] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continue
               </button>
