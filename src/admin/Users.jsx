@@ -9,7 +9,7 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/user/details`);
+        const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/users`);
         const usersWithAvatars = response.data.map(user => ({
           ...user,
           avatar: `https://i.pravatar.cc/150?u=${user.email}`
